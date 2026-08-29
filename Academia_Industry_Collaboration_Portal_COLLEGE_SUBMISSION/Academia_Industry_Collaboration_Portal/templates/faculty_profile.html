@@ -1,0 +1,12 @@
+{% extends 'base.html' %}{% block title %}Faculty Profile{% endblock %}{% block content %}
+<div class="page-head"><div><span class="eyebrow">FACULTY PROFILE</span><h1>Professional Profile</h1><p>Expertise and research tags help the platform match you with collaboration opportunities.</p></div></div>
+<div class="two-col"><div class="panel profile-card"><div class="profile-photo-large">{% if current_user.avatar %}<img src="{{url_for('static',filename='uploads/'+current_user.avatar.filename)}}" alt="Profile photo">{% else %}<span>{{current_user.name[0]|upper}}</span>{% endif %}</div><h2>{{current_user.name}}</h2><p class="muted">{{f.designation or 'Faculty / Academician'}}</p></div>
+<div class="panel"><form method="post" enctype="multipart/form-data" class="form-grid">
+<label>Profile photo<input type="file" name="profile_photo" accept="image/png,image/jpeg,image/webp"><small class="field-help">PNG, JPG or WEBP · max 5 MB</small></label>
+<label>Designation<input name="designation" value="{{f.designation or ''}}" required></label>
+<label>Institution<select name="institution"><option value="">Select institution</option>{% for x in institutions %}<option value="{{x.name}}" {% if f.institution==x.name %}selected{% endif %}>{{x.name}}{% if x.city %} — {{x.city}}{% endif %}</option>{% endfor %}</select></label>
+<label>Department<select name="department"><option value="">Select department</option>{% for x in departments %}<option value="{{x.name}}" {% if f.department==x.name %}selected{% endif %}>{{x.name}} — {{x.institution.name}}</option>{% endfor %}</select></label>
+<label>Qualifications<input name="qualifications" value="{{f.qualifications or ''}}"></label><label>Experience<input name="experience" value="{{f.experience or ''}}" maxlength="80"></label>
+<label class="span-2">Expertise<textarea name="expertise" maxlength="2000" placeholder="AI, Data, Industry 4.0">{{f.expertise or ''}}</textarea></label>
+<label class="span-2">Research areas<textarea name="research" maxlength="2000">{{f.research or ''}}</textarea></label>
+<div><button class="btn btn-primary">Save Profile</button></div></form></div></div>{% endblock %}

@@ -1,0 +1,8 @@
+{
+  "project": "Academia–Industry Collaboration Portal",
+  "type": "College Submission",
+  "backend": "Python Flask",
+  "database": "PostgreSQL-ready / SQLite local fallback",
+  "ai": "Gemini API via environment variables",
+  "deployment": "Render + Gunicorn + Docker"
+}

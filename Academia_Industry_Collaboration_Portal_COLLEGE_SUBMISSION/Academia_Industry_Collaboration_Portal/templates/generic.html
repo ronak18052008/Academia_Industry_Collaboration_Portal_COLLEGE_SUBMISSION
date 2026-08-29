@@ -1,0 +1,46 @@
+{% extends 'base.html' %}
+{% block title %}{{ title }}{% endblock %}
+{% block content %}
+<div class="page-head">
+  <div><span class="eyebrow">CONNECTED MODULE</span><h1>{{ title }}</h1><p>{{ subtitle }}</p></div>
+  <div style="display:flex;gap:8px;align-items:center;flex-wrap:wrap"><span class="badge success">LIVE DATABASE</span><span class="badge">Authority: {{ allowed_roles|join(', ') }}</span></div>
+</div>
+
+{% if kind == 'analytics' %}
+<div class="kpi-grid">
+{% for k,v in stats.items() %}<div class="kpi"><span>{{ k }}</span><b>{{ v }}</b><small>Current database records</small></div>{% endfor %}
+</div>
+<div class="two-col">
+  <div class="panel"><h2>Platform activity</h2><div class="chart-wrap"><canvas id="moduleChart"></canvas></div></div>
+  <div class="panel"><h2>What this means</h2><p class="muted">These figures are calculated from the shared database. They change when students, faculty, companies, opportunities and applications are updated.</p><div class="info-strip"><b>Recommendation engine</b><span>Skill 40% · Eligibility 25% · Career 20% · Interest 15%</span></div></div>
+</div>
+{% elif kind == 'opportunity' %}
+<div class="opp-grid">
+{% for x in items %}<div class="opp-card rich"><div class="opp-top"><span class="opp-type">{{ x.type }}</span><span class="badge success">{{ x.status }}</span></div><h3>{{ x.title }}</h3><p>{{ x.company.name }}</p><div class="opp-meta"><span>{{ x.location }}</span><span>{{ x.mode }}</span><span>{{ x.openings }} openings</span></div><footer>Deadline {{ x.deadline.strftime('%d %b %Y') if x.deadline else 'Open' }} <a href="{{ url_for('opportunity_detail', oid=x.id) }}"><b>View →</b></a></footer></div>{% else %}<div class="empty big">No records found.</div>{% endfor %}</div>
+{% elif kind == 'course' %}
+<div class="course-grid">{% for x in items %}<div class="course-card"><div class="course-top"><span>{{ x.provider }}</span><span>{{ x.level }}</span></div><h3>{{ x.title }}</h3><p>{{ x.description }}</p><small>{{ x.duration }}</small>{% if x.skill %}<div class="tag-cloud" style="margin-top:10px"><span class="tag">Skill: {{ x.skill.name }}</span></div>{% endif %}</div>{% else %}<div class="empty big">No learning records found.</div>{% endfor %}</div>
+{% elif kind == 'company' %}
+<div class="generic-grid">{% for x in items %}<div class="mini-card"><b>{{ x.name }}</b><span>{{ x.industry }} · {{ x.location }}</span><span>{{ x.description }}</span><span class="badge success" style="margin-top:8px">{{ x.verification_status }}</span><form method="post" action="{{ url_for('messages') }}" style="margin-top:10px"><input type="hidden" name="recipient_id" value="{{ x.users[0].user_id if x.users else 0 }}"><input type="hidden" name="subject" value="Industry Connect"><input type="hidden" name="body" value="I would like to connect through the Academia–Industry Collaboration Portal."><button class="btn btn-small">Connect</button></form></div>{% else %}<div class="empty big">No verified companies available.</div>{% endfor %}</div>
+{% elif kind == 'student' %}
+<div class="panel"><table><thead><tr><th>Student</th><th>Program</th><th>Career Role</th><th>Location</th><th>Skills</th></tr></thead><tbody>{% for x in items %}<tr><td>{{ x.user.name }}</td><td>{{ x.program }}</td><td>{{ x.desired_role or 'Not set' }}</td><td>{{ x.location or '—' }}</td><td>{{ x.skills|length }}</td></tr>{% else %}<tr><td colspan="5" class="empty">No authorized student records.</td></tr>{% endfor %}</tbody></table></div>
+{% elif kind == 'skill' %}
+<div class="tag-cloud panel">{% for x in items %}<span class="tag"><b>{{ x.name }}</b> · {{ x.category or 'General' }}</span>{% else %}<span class="empty">No skills configured.</span>{% endfor %}</div>
+{% elif kind == 'event' %}
+<div class="event-grid">{% for x in items %}<div class="event-card"><span>{{ x.event_type }}</span><h3>{{ x.title }}</h3><b>{{ x.event_date.strftime('%d %b %Y · %I:%M %p') if x.event_date else 'TBD' }}</b><p>{{ x.location }}</p><small>{{ x.description }}</small></div>{% else %}<div class="empty big">No events scheduled.</div>{% endfor %}</div>
+{% elif kind == 'mentorship' %}
+<div class="generic-grid">{% for x in items %}<div class="mini-card"><span class="opp-type">{{ x.domain }}</span><b>{{ x.title }}</b><span>Mentor: {{ x.mentor }} · {{ x.seats }} seats · {{ x.status }}</span>{% if current_user.role == 'Student' %}<form method="post" action="{{ url_for('student_mentorship') }}" style="margin-top:10px"><input type="hidden" name="mentorship_id" value="{{ x.id }}"><input name="note" placeholder="What do you want help with?"><button class="btn btn-small btn-primary">Request</button></form>{% endif %}</div>{% else %}<div class="empty big">No mentorship programs found.</div>{% endfor %}</div>
+{% elif kind == 'guidance' %}
+<div class="panel"><table><thead><tr><th>Student</th><th>Action</th><th>Faculty Note</th><th>Date</th></tr></thead><tbody>{% for x in items %}<tr><td>{{ x.student.user.name }}</td><td>{{ x.action }}</td><td>{{ x.note }}</td><td>{{ x.created_at.strftime('%d %b %Y') }}</td></tr>{% else %}<tr><td colspan="4" class="empty">No guidance records yet. Open an authorized student profile to add guidance.</td></tr>{% endfor %}</tbody></table></div>
+{% elif kind == 'support' %}
+<div class="panel"><table><thead><tr><th>Ticket</th><th>Category</th><th>Subject</th><th>Priority</th><th>Status</th><th>Created</th></tr></thead><tbody>{% for x in items %}<tr><td>#{{x.id}}</td><td>{{x.category}}</td><td>{{x.subject}}</td><td><span class="badge">{{x.priority}}</span></td><td><span class="badge success">{{x.status}}</span></td><td>{{x.created_at.strftime('%d %b %Y')}}</td></tr>{% else %}<tr><td colspan="6" class="empty">No support tickets.</td></tr>{% endfor %}</tbody></table></div>
+{% else %}
+<div class="two-col">
+  <div class="panel">
+    <div class="panel-head"><div><h2>Records</h2><p class="muted">Persistent records for this module.</p></div>{% if can_create %}<span class="badge">Database-backed</span>{% endif %}</div>
+    {% if items %}<div class="generic-grid">{% for x in items %}<div class="mini-card"><b>{{ x.title or x.name }}</b><span>{{ x.description or x.city or x.domain or x.category or '' }}</span>{% if x.status %}<span class="badge" style="margin-top:8px">{{ x.status }}</span>{% endif %}{% if x.due_date %}<small>{{ x.due_date.strftime('%d %b %Y') }}</small>{% endif %}{% if x.module %}<form method="post" style="margin-top:9px"><input type="hidden" name="action" value="delete"><input type="hidden" name="record_id" value="{{ x.id }}"><button class="btn btn-small">Delete</button></form>{% endif %}</div>{% endfor %}</div>{% else %}<div class="empty big">No records yet. Create the first record using the form.</div>{% endif %}
+  </div>
+  {% if can_create %}<div class="panel"><h2>Create / Add Record</h2><p class="muted">Changes are stored in the shared database and are visible to authorized users.</p><form method="post"><input type="hidden" name="action" value="create"><label>Title<input name="title" required placeholder="Enter a title"></label><label>Category<input name="category" placeholder="Category / type"></label><label>Location<input name="location" placeholder="Location or mode"></label><label>Due date<input type="datetime-local" name="due_date"></label><label>Description<textarea name="description" rows="6" placeholder="Describe the record, workflow, requirements or notes"></textarea></label><label>Status<select name="status"><option>Active</option><option>Draft</option><option>Pending</option><option>In Review</option><option>Approved</option><option>Published</option><option>Closed</option></select></label><button class="btn btn-primary">Save to Database</button></form></div>{% endif %}
+</div>
+{% endif %}
+{% endblock %}
+{% block extra_js %}{% if kind == 'analytics' %}<script>new Chart(document.getElementById('moduleChart'),{type:'bar',data:{labels:{{ stats.keys()|list|tojson }},datasets:[{label:'Records',data:{{ stats.values()|list|tojson }}}]},options:{responsive:true,plugins:{legend:{display:false}}}});</script>{% endif %}{% endblock %}

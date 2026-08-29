@@ -1,0 +1,67 @@
+{% extends 'base.html' %}
+{% block title %}Skill Assessment{% endblock %}
+{% block content %}
+<div class="page-head">
+  <div>
+    <span class="eyebrow">ASSESSMENT ENGINE</span>
+    <h1>Skill Assessment</h1>
+    <p>Test your actual knowledge. Each attempt uses a different randomized set of questions where possible, and your score is calculated from correct answers.</p>
+  </div>
+</div>
+
+{% if result %}
+<div class="panel" style="margin-bottom:20px">
+  <div class="eyebrow">LATEST RESULT</div>
+  <h2>{{ result.skill.name }} Assessment</h2>
+  <div class="kpi-grid" style="margin-top:16px">
+    <div class="kpi-card"><strong>{{ result.score_percent }}%</strong><span>Score</span></div>
+    <div class="kpi-card"><strong>{{ result.correct_answers }}/{{ result.total_questions }}</strong><span>Correct Answers</span></div>
+    <div class="kpi-card"><strong>{{ result.level }}/5</strong><span>Verified Skill Level</span></div>
+  </div>
+  <p style="margin-top:14px">Your verified skill profile, skill-gap analysis and recommendations have been recalculated.</p>
+</div>
+{% endif %}
+
+<div class="panel" style="margin-bottom:20px">
+  <form method="get" class="assessment-form">
+    <label>Choose a skill to test
+      <select name="skill_id" onchange="this.form.submit()">
+        <option value="">Select skill</option>
+        {% for s in skills %}
+          <option value="{{ s.id }}" {% if selected_skill and selected_skill.id == s.id %}selected{% endif %}>{{ s.name }} · {{ s.category }}</option>
+        {% endfor %}
+      </select>
+    </label>
+  </form>
+</div>
+
+{% if selected_skill and questions %}
+<div class="panel">
+  <div style="display:flex;justify-content:space-between;gap:15px;align-items:center;flex-wrap:wrap">
+    <div><div class="eyebrow">{{ selected_skill.category }}</div><h2>{{ selected_skill.name }} Test</h2></div>
+    <span class="badge">{{ questions|length }} Questions</span>
+  </div>
+  <p>Choose one answer for every question. Score = correct answers ÷ total questions × 100.</p>
+
+  <form method="post" id="assessmentForm">
+    <input type="hidden" name="skill_id" value="{{ selected_skill.id }}">
+    {% for q in questions %}
+      <input type="hidden" name="question_id" value="{{ q.id }}">
+      <div class="assessment-question" style="padding:18px 0;border-bottom:1px solid var(--border,#e5e7eb)">
+        <h3 style="margin:0 0 12px">{{ loop.index }}. {{ q.question }}</h3>
+        {% for option in q.options_json|fromjson %}
+          <label style="display:block;margin:9px 0;padding:10px;border:1px solid var(--border,#e5e7eb);border-radius:10px;cursor:pointer">
+            <input type="radio" name="q_{{ q.id }}" value="{{ loop.index0 }}" required> {{ option }}
+          </label>
+        {% endfor %}
+      </div>
+    {% endfor %}
+    <button class="btn btn-primary" type="submit" style="margin-top:18px">Submit Test & Calculate Score</button>
+  </form>
+</div>
+{% elif selected_skill %}
+<div class="panel"><h2>Questions are being prepared</h2><p>No active questions are currently available for {{ selected_skill.name }}. Choose another skill.</p></div>
+{% else %}
+<div class="panel"><h2>Start a knowledge test</h2><p>Select a skill above. The system will generate a randomized question set from the question bank.</p></div>
+{% endif %}
+{% endblock %}
