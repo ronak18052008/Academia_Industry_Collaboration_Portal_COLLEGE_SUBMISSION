@@ -11,4 +11,4 @@ COPY . .
 RUN mkdir -p /app/instance /app/static/uploads
 
 EXPOSE 5000
-CMD ["gunicorn", "app:app", "--workers", "2", "--threads", "4", "--timeout", "120", "--access-logfile", "-", "--error-logfile", "-"]
+CMD ["gunicorn", "app:app", "--workers", "1", "--threads", "4", "--timeout", "120", "--access-logfile", "-", "--error-logfile", "-"]
